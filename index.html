@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Samui Webcams Map</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-layers-expanded/css/leaflet-control-layers-expanded.min.css" />
   <style>
     html, body { margin: 0; padding: 0; height: 100%; }
     #map { height: 100vh; width: 100vw; }
@@ -14,6 +15,7 @@
 <body>
   <div id="map"></div>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-control-layers-expanded/js/leaflet-control-layers-expanded.min.js"></script>
   <script>
     const webcams = [
       { name: "Baobab, Lamai", lat: 9.458187, lng: 100.042455, img: "https://samui.life/cams/baobab_lamai.jpg" },
@@ -49,15 +51,31 @@
     ];
 
     const map = L.map('map').setView([9.55, 100.05], 11);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+
+    const baseLayers = {
+      "OSM": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }),
+      
+      "Carto Light": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB'
+      }),
+      "Carto Dark": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB'
+      }),
+      "Esri World Imagery": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+      })
+    };
+
+    baseLayers["OSM"].addTo(map);
+    L.control.layers(baseLayers, null, { collapsed: false }).addTo(map);
 
     const customIcon = L.icon({
-      iconUrl: 'https://maphub.net/media/markers/y/hs/yhs5dy43ktskm4pw/80.png',
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -32]
+      iconUrl: "https://maphub.net/media/markers/y/hs/yhs5dy43ktskm4pw/80.png",
+      iconSize: [30, 30],
+      iconAnchor: [15, 30],
+      popupAnchor: [0, -30]
     });
 
     webcams.forEach(cam => {
