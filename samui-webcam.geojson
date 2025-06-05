@@ -1,0 +1,395 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.045405,
+          9.931056
+        ]
+      },
+      "properties": {
+        "name": "Baobab, Lamai"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.070671,
+          9.952125
+        ]
+      },
+      "properties": {
+        "name": "Crystal Bay"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.092225,
+          10.049955
+        ]
+      },
+      "properties": {
+        "name": "Lost Beach Bar Choeng Mon"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.072965,
+          9.950789
+        ]
+      },
+      "properties": {
+        "name": "Crystal Bay Yacht Club"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.048346,
+          9.936188
+        ]
+      },
+      "properties": {
+        "name": "Teddy Weed Beach, Lamai"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.04648,
+          9.936609
+        ]
+      },
+      "properties": {
+        "name": "Lamai: Piri Piri"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.066043,
+          10.042157
+        ]
+      },
+      "properties": {
+        "name": "Bangrak Pier"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.060223,
+          10.036662
+        ]
+      },
+      "properties": {
+        "name": "Big Buddha Pier"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.087956,
+          10.050894
+        ]
+      },
+      "properties": {
+        "name": "Bay Beach Resort, Choeng Mon"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.072888,
+          10.161576
+        ]
+      },
+      "properties": {
+        "name": "Phangan: Haad Rin"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.067487,
+          10.008522
+        ]
+      },
+      "properties": {
+        "name": "Chaweng, Pancake Man"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.046632,
+          10.012043
+        ]
+      },
+      "properties": {
+        "name": "Banyan Food Market"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.042427,
+          10.039399
+        ]
+      },
+      "properties": {
+        "name": "The Deck Beach Club"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.076919,
+          10.02198
+        ]
+      },
+      "properties": {
+        "name": "Chaweng, Kaif Sauna"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.074244,
+          9.947037
+        ]
+      },
+      "properties": {
+        "name": "Banyan Tree Samui"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.058958,
+          10.036012
+        ]
+      },
+      "properties": {
+        "name": "Secret Garden, Big Buddha"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.964583,
+          10.061974
+        ]
+      },
+      "properties": {
+        "name": "Bantai beach, FitKoh Gym"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.045042,
+          9.930542
+        ]
+      },
+      "properties": {
+        "name": "Lamai, Black pearl restaurant"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.065734,
+          10.046449
+        ]
+      },
+      "properties": {
+        "name": "The Sunset bar"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.089305,
+          10.05045
+        ]
+      },
+      "properties": {
+        "name": "Chong Mon, Royal Muang Villas"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.957428,
+          9.966304
+        ]
+      },
+      "properties": {
+        "name": "Lipa Noi, Ida B Domain"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.031824,
+          10.038086
+        ]
+      },
+      "properties": {
+        "name": "Fisherman's Village, Annie Sweetery"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.051713,
+          9.94055
+        ]
+      },
+      "properties": {
+        "name": "Lamai beach, The Door club"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.031426,
+          10.03827
+        ]
+      },
+      "properties": {
+        "name": "Fisherman's Village"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.064236,
+          10.004651
+        ]
+      },
+      "properties": {
+        "name": "Tropical Murphy's Chaweng"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.067858,
+          10.009112
+        ]
+      },
+      "properties": {
+        "name": "Chaweng, Hush Bar"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.06264,
+          10.000121
+        ]
+      },
+      "properties": {
+        "name": "Chaweng, Zeze restaurant"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.067743,
+          10.008452
+        ]
+      },
+      "properties": {
+        "name": "Bondi Chaweng"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          107.047614,
+          9.938553
+        ]
+      },
+      "properties": {
+        "name": "Bondi Bar, Lamai"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          106.810088,
+          10.585881
+        ]
+      },
+      "properties": {
+        "name": "Mae Haad Bay, Koh Tao"
+      }
+    }
+  ]
+}
