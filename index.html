@@ -1,83 +1,75 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>กล้องแหล่งท่องเที่ยวเกาะสมุย | Samui Webcams</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Samui Webcams Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      font-family: "Segoe UI", sans-serif;
-    }
-    #map {
-      width: 100%;
-      height: 100vh;
-    }
-    .popup-title {
-      font-weight: bold;
-      font-size: 1rem;
-      margin-bottom: 5px;
-    }
-    .popup-img {
-      margin-top: 5px;
-      max-width: 200px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
+    html, body { margin: 0; padding: 0; height: 100%; }
+    #map { height: 100vh; width: 100vw; }
+    .popup-img { width: 200px; height: auto; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
   <div id="map"></div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // เริ่มแผนที่
-    const map = L.map('map').setView([9.47, 100.05], 11); // ศูนย์กลางเกาะสมุย
+    const webcams = [
+      { name: "Baobab, Lamai", lat: 9.458187, lng: 100.042455, img: "https://samui.life/cams/baobab_lamai.jpg" },
+      { name: "Crystal Bay", lat: 9.478152, lng: 100.066326, img: "https://samui.life/cams/crystalbay.jpg" },
+      { name: "Lost Beach Bar Choeng Mon", lat: 9.571394, lng: 100.086406, img: "https://samui.life/cams/lost_beach_bar.jpg" },
+      { name: "Crystal Bay Yacht Club", lat: 9.476955, lng: 100.06785, img: "https://samui.life/cams/yachtclub.jpg" },
+      { name: "Teddy Weed Beach, Lamai", lat: 9.462877, lng: 100.045188, img: "https://samui.life/cams/teddy_weed_beach.jpg" },
+      { name: "Lamai: Piri Piri", lat: 9.463533, lng: 100.043422, img: "https://samui.life/cams/lamai_piri_piri.jpg" },
+      { name: "Bangrak Pier", lat: 9.563983, lng: 100.061594, img: "https://samui.life/cams/bangrak_pier.jpg" },
+      { name: "Big Buddha Pier", lat: 9.558725, lng: 100.056208, img: "https://samui.life/cams/big_buddha_pier.jpg" },
+      { name: "Bay Beach Resort, Choeng Mon", lat: 9.572264, lng: 100.082177, img: "https://samui.life/cams/bay_beach_resort.jpg" },
+      { name: "Phangan: Haad Rin", lat: 9.678137, lng: 100.068419, img: "https://samui.life/cams/phangan_haad_rin.jpg" },
+      { name: "Chaweng, Pancake Man", lat: 9.531932, lng: 100.063066, img: "https://samui.life/cams/chaweng_pancake.jpg" },
+      { name: "Banyan Food Market", lat: 9.535197, lng: 100.04358, img: "https://samui.life/cams/banyan_food_market.jpg" },
+      { name: "The Deck Beach Club", lat: 9.56136, lng: 100.039554, img: "https://samui.life/cams/bang_rak_the_deck.jpg" },
+      { name: "Chaweng, Kaif Sauna", lat: 9.5448, lng: 100.071849, img: "https://samui.life/cams/kaif_sauna.jpg" },
+      { name: "Banyan Tree Samui", lat: 9.473315, lng: 100.069299, img: "https://samui.life/cams/banyantree.jpg" },
+      { name: "Secret Garden, Big Buddha", lat: 9.558081, lng: 100.055056, img: "https://samui.life/cams/secret_garden.jpg" },
+      { name: "Bantai beach, FitKoh Gym", lat: 9.583275, lng: 99.967434, img: "https://samui.life/cams/ban_tai_fitkoh.jpg" },
+      { name: "Lamai, Black pearl restaurant", lat: 9.457703, lng: 100.042161, img: "https://samui.life/cams/lamai_black_pearl.jpg" },
+      { name: "The Sunset bar", lat: 9.567976, lng: 100.061482, img: "https://samui.life/cams/bang_rak_sunset_bar.jpg" },
+      { name: "Chong Mon, Royal Muang Villas", lat: 9.571895, lng: 100.083585, img: "https://samui.life/cams/chong_mon_royal_muang.jpg" },
+      { name: "Lipa Noi, Ida B Domain", lat: 9.49116, lng: 99.960507, img: "https://samui.life/cams/lipa_noi_ida_b.jpg" },
+      { name: "Fisherman's Village, Annie Sweetery", lat: 9.56003, lng: 100.029787, img: "https://samui.life/cams/fisherman_annie.jpg" },
+      { name: "Lamai beach, The Door club", lat: 9.467854, lng: 100.049011, img: "https://samui.life/cams/lamai_the_door.jpg" },
+      { name: "Fisherman's Village", lat: 9.560369, lng: 100.02906, img: "https://samui.life/cams/fisherman_shack.jpg" },
+      { name: "Tropical Murphy's Chaweng", lat: 9.528134, lng: 100.059865, img: "https://samui.life/cams/murphys.jpg" },
+      { name: "Chaweng, Hush Bar", lat: 9.53258, lng: 100.063426, img: "https://samui.life/cams/chaweng_hush_bar.jpg" },
+      { name: "Chaweng, Zeze restaurant", lat: 9.524063, lng: 100.058519, img: "https://samui.life/cams/chaweng_zeze.jpg" },
+      { name: "Bondi Chaweng", lat: 9.531991, lng: 100.063421, img: "https://samui.life/cams/bondi_chaweng.jpg" },
+      { name: "Bondi Bar, Lamai", lat: 9.465408, lng: 100.044519, img: "https://samui.life/cams/bondilamai.jpg" },
+      { name: "Mae Haad Bay, Koh Tao", lat: 10.084906, lng: 99.823992, img: "https://samui.life/cams/koh_tao_mae_haad.jpg" },
+    ];
 
-    // ใช้แผนที่จาก OSM
+    const map = L.map('map').setView([9.55, 100.05], 11);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // โหลดข้อมูลกล้องจากไฟล์ GeoJSON
-    fetch('samui-webcam.geojson')
-      .then(res => res.json())
-      .then(data => {
-        L.geoJSON(data, {
-          onEachFeature: function (feature, layer) {
-            const props = feature.properties;
-            const name = props.name || "ไม่ระบุชื่อ";
-            const description = props.description || "";
+    const customIcon = L.icon({
+      iconUrl: 'https://maphub.net/media/markers/y/hs/yhs5dy43ktskm4pw/80.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+    });
 
-            // ดึงลิงก์กล้อง (ถ้ามี)
-            const linkMatch = description.match(/href="([^"]+)"/);
-            const linkURL = linkMatch ? linkMatch[1] : null;
-
-            // ดึงรูปภาพพรีวิว (ถ้ามี)
-            const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
-            const imgURL = imgMatch ? imgMatch[1] : null;
-
-            let popupContent = `<div class="popup-title">${name}</div>`;
-
-            if (linkURL) {
-              popupContent += `<a href="${linkURL}" target="_blank">🌐 เปิดกล้องถ่ายทอดสด</a>`;
-            }
-
-            if (imgURL) {
-              popupContent += `<br><img src="${imgURL}" class="popup-img" alt="ภาพพรีวิวกล้อง">`;
-            }
-
-            layer.bindPopup(popupContent);
-          }
-        }).addTo(map);
-      })
-      .catch(err => {
-        console.error("ไม่สามารถโหลด GeoJSON ได้:", err);
-      });
+    webcams.forEach(cam => {
+      const marker = L.marker([cam.lat, cam.lng], { icon: customIcon }).addTo(map);
+      const popupContent = `
+        <strong>${cam.name}</strong><br>
+        <a href="${cam.img}" target="_blank">
+          <img src="${cam.img}" class="popup-img" alt="${cam.name}" />
+        </a>
+      `;
+      marker.bindPopup(popupContent);
+    });
   </script>
 </body>
 </html>
