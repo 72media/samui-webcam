@@ -3,70 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>แผนที่กล้องเว็บแคมเกาะสมุย</title>
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- Leaflet Omnivore (KML) -->
-  <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
-
+  <title>กล้องถ่ายทอดสดเกาะสมุย | Samui Webcams</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    html, body {
+    body, html {
       margin: 0;
       padding: 0;
       height: 100%;
-      font-family: sans-serif;
+      font-family: "Segoe UI", sans-serif;
     }
     #map {
       width: 100%;
       height: 100vh;
     }
-    h1 {
-      text-align: center;
-      margin: 0.5em 0;
+    .popup-title {
+      font-weight: bold;
+      font-size: 1rem;
+      margin-bottom: 5px;
     }
     .popup-img {
-      width: 100%;
-      max-width: 250px;
-      border-radius: 8px;
+      margin-top: 5px;
+      max-width: 200px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
-  <h1>แผนที่กล้องเว็บแคมเกาะสมุย</h1>
   <div id="map"></div>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const map = L.map('map').setView([9.512, 100.013], 11);
+    // เริ่มแผนที่
+    const map = L.map('map').setView([9.47, 100.05], 11); // ศูนย์กลางเกาะสมุย
 
+    // ใช้แผนที่จาก OSM
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
       attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    const layer = omnivore.kml('samui webcam.kml')
-      .on('ready', function () {
-        map.fitBounds(layer.getBounds());
-      })
-      .on('error', function (e) {
-        alert('โหลดไฟล์ KML ไม่สำเร็จ');
-      })
-      .addTo(map);
+    // โหลดข้อมูลกล้องจากไฟล์ GeoJSON
+    fetch('samui-webcam.geojson')
+      .then(res => res.json())
+      .then(data => {
+        L.geoJSON(data, {
+          onEachFeature: function (feature, layer) {
+            const props = feature.properties;
+            const name = props.name || "ไม่ระบุชื่อ";
+            const description = props.description || "";
 
-    layer.on('ready', function () {
-      layer.eachLayer(function(marker) {
-        const name = marker.feature.properties.name || 'จุดไม่ระบุชื่อ';
-        const desc = marker.feature.properties.description || '';
+            // ดึงลิงก์กล้อง (ถ้ามี)
+            const linkMatch = description.match(/href="([^"]+)"/);
+            const linkURL = linkMatch ? linkMatch[1] : null;
 
-        // ถ้ามีลิงก์รูปภาพ หรือ iframe เว็บแคมใน description จะโชว์อัตโนมัติ
-        const popupContent = `
-          <strong>${name}</strong><br>
-          ${desc}
-        `;
-        marker.bindPopup(popupContent);
+            // ดึงรูปภาพพรีวิว (ถ้ามี)
+            const imgMatch = description.match(/<img[^>]+src="([^"]+)"/);
+            const imgURL = imgMatch ? imgMatch[1] : null;
+
+            let popupContent = `<div class="popup-title">${name}</div>`;
+
+            if (linkURL) {
+              popupContent += `<a href="${linkURL}" target="_blank">🌐 เปิดกล้องถ่ายทอดสด</a>`;
+            }
+
+            if (imgURL) {
+              popupContent += `<br><img src="${imgURL}" class="popup-img" alt="ภาพพรีวิวกล้อง">`;
+            }
+
+            layer.bindPopup(popupContent);
+          }
+        }).addTo(map);
+      })
+      .catch(err => {
+        console.error("ไม่สามารถโหลด GeoJSON ได้:", err);
       });
-    });
   </script>
 </body>
 </html>
