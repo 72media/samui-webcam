@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>แผนที่กล้องเว็บแคมเกาะสมุย</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Omnivore (KML) -->
+  <script src="https://unpkg.com/leaflet-omnivore@0.3.4/leaflet-omnivore.min.js"></script>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+    }
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      margin: 0.5em 0;
+    }
+    .popup-img {
+      width: 100%;
+      max-width: 250px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>แผนที่กล้องเว็บแคมเกาะสมุย</h1>
+  <div id="map"></div>
+
+  <script>
+    const map = L.map('map').setView([9.512, 100.013], 11);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    const layer = omnivore.kml('samui webcam.kml')
+      .on('ready', function () {
+        map.fitBounds(layer.getBounds());
+      })
+      .on('error', function (e) {
+        alert('โหลดไฟล์ KML ไม่สำเร็จ');
+      })
+      .addTo(map);
+
+    layer.on('ready', function () {
+      layer.eachLayer(function(marker) {
+        const name = marker.feature.properties.name || 'จุดไม่ระบุชื่อ';
+        const desc = marker.feature.properties.description || '';
+
+        // ถ้ามีลิงก์รูปภาพ หรือ iframe เว็บแคมใน description จะโชว์อัตโนมัติ
+        const popupContent = `
+          <strong>${name}</strong><br>
+          ${desc}
+        `;
+        marker.bindPopup(popupContent);
+      });
+    });
+  </script>
+</body>
+</html>
