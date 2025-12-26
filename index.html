@@ -3,20 +3,297 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Samui Webcams Map</title>
+  <title>Samui Webcams Live Map</title>
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-layers-expanded/css/leaflet-control-layers-expanded.min.css" />
+  
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
   <style>
-    html, body { margin: 0; padding: 0; height: 100%; }
-    #map { height: 100vh; width: 100vw; }
-    .popup-img { width: 300px; height: auto; border-radius: 8px; cursor: pointer; }
+    :root {
+      --primary-color: #2c3e50;
+      --glass-bg: rgba(255, 255, 255, 0.9);
+      --glass-border: rgba(255, 255, 255, 0.5);
+      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    body, html { 
+      margin: 0; 
+      padding: 0; 
+      height: 100%; 
+      font-family: 'Prompt', sans-serif; 
+      overflow: hidden;
+    }
+
+    /* Map Container */
+    #map { 
+      height: 100vh; 
+      width: 100vw; 
+      z-index: 1;
+    }
+
+    /* --- UI: Floating Header --- */
+    .app-header {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 8px 20px;
+      border-radius: 50px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      white-space: nowrap;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-header h1 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .live-badge {
+      background-color: #e74c3c;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background-color: white;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+
+    .divider {
+      width: 1px;
+      height: 20px;
+      background-color: #bdc3c7;
+    }
+
+    .clock-display {
+      font-size: 0.95rem;
+      color: #555;
+      font-variant-numeric: tabular-nums; /* ป้องกันตัวเลขกระโดดเวลาเปลี่ยนวินาที */
+      font-weight: 400;
+    }
+
+    /* --- UI: Popup Styling --- */
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      padding: 0;
+      overflow: hidden;
+    }
+    
+    .leaflet-popup-content {
+      margin: 0 !important;
+      width: 300px !important;
+    }
+
+    .popup-card {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .popup-img-container {
+      width: 100%;
+      height: 170px;
+      background: #000;
+      position: relative;
+      cursor: zoom-in; /* เปลี่ยน cursor ให้รู้ว่าคลิกได้ */
+    }
+
+    .popup-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: opacity 0.3s;
+    }
+    
+    .popup-img:hover {
+      opacity: 0.9;
+    }
+
+    .popup-info {
+      padding: 12px;
+      background: white;
+      text-align: center;
+    }
+
+    .popup-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 4px;
+    }
+
+    .popup-coords {
+      font-size: 0.75rem;
+      color: #7f8c8d;
+    }
+
+    /* --- UI: Modal (Lightbox) --- */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 2000; 
+      padding-top: 0; 
+      left: 0;
+      top: 0;
+      width: 100%; 
+      height: 100%; 
+      overflow: auto; 
+      background-color: rgba(0,0,0,0.9); 
+      backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+      margin: auto;
+      display: block;
+      max-width: 90%;
+      max-height: 85vh;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .modal-caption {
+      margin: auto;
+      display: block;
+      width: 80%;
+      text-align: center;
+      color: #ccc;
+      padding: 10px 0;
+      height: 150px;
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.2rem;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      transition: 0.3s;
+      cursor: pointer;
+      z-index: 2001;
+    }
+
+    .close-modal:hover,
+    .close-modal:focus {
+      color: #bbb;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* Leaflet Controls */
+    .leaflet-bar a {
+      background: var(--glass-bg) !important;
+      color: var(--primary-color) !important;
+      border: none !important;
+    }
+
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 600px) {
+      .app-header {
+        width: 85%;
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px;
+        border-radius: 20px;
+      }
+      .divider { display: none; }
+      .clock-display { font-size: 0.85rem; }
+    }
   </style>
 </head>
 <body>
+
+  <div class="app-header">
+    <div class="header-title">
+      <span class="live-badge"><div class="live-dot"></div> LIVE</span>
+      <h1>ภาพจากกล้องที่เกาะสมุย</h1>
+    </div>
+    <div class="divider"></div>
+    <div id="liveClock" class="clock-display">Loading...</div>
+  </div>
+
+  <div id="imgModal" class="modal" onclick="closeModal()">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="fullImage">
+    <div id="caption" class="modal-caption"></div>
+  </div>
+
   <div id="map"></div>
+
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet-control-layers-expanded/js/leaflet-control-layers-expanded.min.js"></script>
   <script>
+    // --- 1. Real-time Thai Clock ---
+    function updateClock() {
+      const now = new Date();
+      const options = { 
+        timeZone: 'Asia/Bangkok',
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric', // จะได้ ค.ศ. ก่อน เดี๋ยวแปลงเป็น พ.ศ.
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit'
+      };
+      
+      // แปลงวันที่เป็นไทย
+      let dateString = now.toLocaleDateString('th-TH', options);
+      // Hack เล็กน้อยเพื่อให้แน่ใจว่าเป็นรูปแบบ พ.ศ. (บาง browser อาจให้ ค.ศ.)
+      if (dateString.includes('2025')) dateString = dateString.replace('2025', '2568');
+      if (dateString.includes('2026')) dateString = dateString.replace('2026', '2569');
+
+      // รวมวันที่และเวลา (toLocaleDateString บางทีไม่รวมเวลา ขึ้นอยู่กับ Browser)
+      // ใช้วิธีแยกส่วนเพื่อความชัวร์
+      const timeString = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dayMonthYear = now.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+      
+      document.getElementById('liveClock').innerText = `${dayMonthYear} • ${timeString}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock(); // Run immediately
+
+    // --- 2. Map Data ---
     const webcams = [
       { name: "Baobab, Lamai", lat: 9.458187, lng: 100.042455, img: "https://samui.life/cams/baobab_lamai.jpg" },
       { name: "Crystal Bay", lat: 9.478152, lng: 100.066326, img: "https://samui.life/cams/crystalbay.jpg" },
@@ -50,44 +327,63 @@
       { name: "Mae Haad Bay, Koh Tao", lat: 10.084906, lng: 99.823992, img: "https://samui.life/cams/koh_tao_mae_haad.jpg" },
     ];
 
-    const map = L.map('map').setView([9.55, 100.05], 11);
+    // --- 3. Map Setup ---
+    const map = L.map('map', { zoomControl: false }).setView([9.53, 100.05], 11);
+    
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    const baseLayers = {
-      "OSM": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }),
-      
-      "Carto Light": L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CartoDB'
-      }),
-      "Carto Dark": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CartoDB'
-      }),
-      "Esri World Imagery": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri'
-      })
-    };
-
-    baseLayers["OSM"].addTo(map);
-    L.control.layers(baseLayers, null, { collapsed: false }).addTo(map);
+    const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+      maxZoom: 20,
+      attribution: '&copy; Google Maps'
+    }).addTo(map);
 
     const customIcon = L.icon({
       iconUrl: "https://maphub.net/media/markers/y/hs/yhs5dy43ktskm4pw/80.png",
-      iconSize: [30, 30],
-      iconAnchor: [15, 30],
-      popupAnchor: [0, -30]
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+      popupAnchor: [0, -32]
     });
+
+    // --- 4. Popup & Modal Logic ---
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("fullImage");
+    const captionText = document.getElementById("caption");
+
+    // Function called when clicking image in popup
+    window.openModal = function(imgSrc, title) {
+      modal.style.display = "block";
+      modalImg.src = imgSrc;
+      // captionText.innerHTML = title; // Uncomment if you want text below image
+    }
+
+    // Function to close modal
+    window.closeModal = function() {
+      modal.style.display = "none";
+    }
 
     webcams.forEach(cam => {
       const marker = L.marker([cam.lat, cam.lng], { icon: customIcon }).addTo(map);
+      
+      // Escape single quotes in name just in case
+      const safeName = cam.name.replace(/'/g, "\\'");
+      
       const popupContent = `
-        <strong>${cam.name}</strong><br>
-        <a href="${cam.img}" target="_blank">
-          <img src="${cam.img}" class="popup-img" alt="${cam.name}" />
-        </a>
+        <div class="popup-card">
+          <div class="popup-img-container" onclick="openModal('${cam.img}', '${safeName}')">
+            <img src="${cam.img}" class="popup-img" alt="${cam.name}" loading="lazy" />
+            <div style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.5); color:white; padding:2px 5px; font-size:10px; border-radius:3px; pointer-events:none;">
+              🔍 Click to Enlarge
+            </div>
+          </div>
+          <div class="popup-info">
+            <div class="popup-title">${cam.name}</div>
+            <div class="popup-coords">Lat: ${cam.lat.toFixed(4)}, Lng: ${cam.lng.toFixed(4)}</div>
+          </div>
+        </div>
       `;
       marker.bindPopup(popupContent);
     });
+
   </script>
 </body>
 </html>
