@@ -1,300 +1,207 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Samui Webcams Live Map</title>
+  <title>ภาพจากกล้องที่เกาะสมุย (Samui Cams)</title>
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --primary-color: #2c3e50;
-      --glass-bg: rgba(255, 255, 255, 0.9);
-      --glass-border: rgba(255, 255, 255, 0.5);
-      --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+      /* Theme Colors */
+      --header-gradient: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%);
+      --weather-bg: #f0f9ff;
+      --glass-bg: rgba(255, 255, 255, 0.95);
     }
 
-    body, html { 
-      margin: 0; 
-      padding: 0; 
-      height: 100%; 
-      font-family: 'Prompt', sans-serif; 
-      overflow: hidden;
-    }
+    body, html { margin: 0; padding: 0; height: 100%; font-family: 'Prompt', sans-serif; overflow: hidden; background: #111; }
+    #map { height: 100vh; width: 100vw; z-index: 1; }
 
-    /* Map Container */
-    #map { 
-      height: 100vh; 
-      width: 100vw; 
-      z-index: 1;
-    }
-
-    /* --- UI: Floating Header --- */
+    /* --- Floating Header --- */
     .app-header {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      background: var(--glass-bg);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      padding: 8px 20px;
-      border-radius: 50px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      white-space: nowrap;
+      position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 1000; background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px); padding: 8px 25px; border-radius: 50px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 15px;
+      border: 1px solid rgba(255,255,255,0.5);
     }
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .app-header h1 {
-      margin: 0;
-      font-size: 1.1rem;
-      color: var(--primary-color);
-      font-weight: 600;
-    }
-
+    .app-header h1 { margin: 0; font-size: 1.1rem; color: #2c3e50; font-weight: 600; }
     .live-badge {
-      background-color: #e74c3c;
-      color: white;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 4px;
+      background: #ff4757; color: white; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 5px;
+      box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
     }
+    .live-dot { width: 8px; height: 8px; background: white; border-radius: 50%; animation: blink 1.2s infinite; }
+    .divider { width: 1px; height: 24px; background: #ddd; }
+    .clock-display { font-size: 0.9rem; color: #555; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+    /* --- Modern Popup Design --- */
+    .leaflet-popup-content-wrapper { padding: 0; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.4); }
+    .leaflet-popup-content { margin: 0 !important; width: 340px !important; }
+    .leaflet-popup-tip { background: #fff; }
     
-    .live-dot {
-      width: 6px;
-      height: 6px;
-      background-color: white;
-      border-radius: 50%;
-      animation: blink 1s infinite;
-    }
+    .popup-card { display: flex; flex-direction: column; background: #fff; }
 
-    .divider {
-      width: 1px;
-      height: 20px;
-      background-color: #bdc3c7;
-    }
-
-    .clock-display {
-      font-size: 0.95rem;
-      color: #555;
-      font-variant-numeric: tabular-nums; /* ป้องกันตัวเลขกระโดดเวลาเปลี่ยนวินาที */
-      font-weight: 400;
-    }
-
-    /* --- UI: Popup Styling --- */
-    .leaflet-popup-content-wrapper {
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      padding: 0;
-      overflow: hidden;
-    }
-    
-    .leaflet-popup-content {
-      margin: 0 !important;
-      width: 300px !important;
-    }
-
-    .popup-card {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .popup-img-container {
-      width: 100%;
-      height: 170px;
-      background: #000;
+    /* Header with Gradient */
+    .popup-header {
+      background: linear-gradient(120deg, #2193b0, #6dd5ed); /* Samui Blue Theme */
+      padding: 12px 20px; color: white;
       position: relative;
-      cursor: zoom-in; /* เปลี่ยน cursor ให้รู้ว่าคลิกได้ */
+    }
+    .popup-title { font-size: 1.15rem; font-weight: 600; display: block; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+    .popup-coords { font-size: 0.75rem; opacity: 0.9; font-weight: 300; display: block; margin-top: 2px; }
+
+    /* Image Area */
+    .popup-img-container {
+      width: 100%; height: 200px; background: #eee; position: relative; cursor: zoom-in; overflow: hidden;
+    }
+    .popup-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .popup-img-container:hover .popup-img { transform: scale(1.08); }
+    .click-hint {
+      position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); color: white;
+      padding: 4px 10px; font-size: 0.7rem; border-radius: 20px; backdrop-filter: blur(4px); pointer-events: none;
     }
 
-    .popup-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: opacity 0.3s;
+    /* --- Colorful Weather Widget --- */
+    .weather-box {
+      background: var(--weather-bg); 
+      padding: 15px 20px; 
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid #e1e8ed; 
+      min-height: 75px;
+    }
+    .weather-loading { color: #888; font-size: 0.85rem; width: 100%; text-align: center; font-style: italic; }
+    
+    .weather-main { display: flex; align-items: center; gap: 15px; }
+    
+    /* Weather Icon */
+    .weather-icon { 
+      font-size: 2.8rem; 
+      filter: drop-shadow(0 3px 5px rgba(0,0,0,0.15));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    /* Temperature with Gradient Text */
+    .weather-temp { 
+      font-size: 2.2rem; 
+      font-weight: 700; 
+      line-height: 1; 
+      /* Gradient Text Effect */
+      background: -webkit-linear-gradient(45deg, #1e3c72, #2a5298);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     
-    .popup-img:hover {
-      opacity: 0.9;
+    /* Details */
+    .weather-details { text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+    
+    /* Condition Badge (Colorful Pill) */
+    .weather-condition { 
+      font-weight: 600; 
+      color: white; 
+      font-size: 0.85rem; 
+      background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%); /* Bright Blue Cyan */
+      padding: 4px 12px; 
+      border-radius: 12px; 
+      box-shadow: 0 2px 5px rgba(79, 172, 254, 0.4);
+      display: inline-block; 
     }
+    
+    .weather-wind { font-size: 0.75rem; color: #636e72; display: flex; align-items: center; gap: 4px; font-weight: 500; }
 
-    .popup-info {
-      padding: 12px;
-      background: white;
-      text-align: center;
-    }
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); backdrop-filter: blur(5px); }
+    .modal-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 95%; max-height: 90vh; border-radius: 8px; box-shadow: 0 0 40px rgba(0,0,0,0.5); }
+    .close-modal { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 40px; cursor: pointer; opacity: 0.7; transition: 0.3s; }
+    .close-modal:hover { opacity: 1; }
 
-    .popup-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--primary-color);
-      margin-bottom: 4px;
-    }
+    /* Animations */
+    @keyframes blink { 50% { opacity: 0.4; } }
+    @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }
+    
+    /* Hide Leaflet Close Button (Use custom if needed, but default is fine with adjustment) */
+    .leaflet-popup-close-button { color: white !important; top: 12px !important; right: 12px !important; font-size: 20px !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
 
-    .popup-coords {
-      font-size: 0.75rem;
-      color: #7f8c8d;
-    }
-
-    /* --- UI: Modal (Lightbox) --- */
-    .modal {
-      display: none; 
-      position: fixed; 
-      z-index: 2000; 
-      padding-top: 0; 
-      left: 0;
-      top: 0;
-      width: 100%; 
-      height: 100%; 
-      overflow: auto; 
-      background-color: rgba(0,0,0,0.9); 
-      backdrop-filter: blur(5px);
-    }
-
-    .modal-content {
-      margin: auto;
-      display: block;
-      max-width: 90%;
-      max-height: 85vh;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.1);
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .modal-caption {
-      margin: auto;
-      display: block;
-      width: 80%;
-      text-align: center;
-      color: #ccc;
-      padding: 10px 0;
-      height: 150px;
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 1.2rem;
-    }
-
-    .close-modal {
-      position: absolute;
-      top: 20px;
-      right: 35px;
-      color: #f1f1f1;
-      font-size: 40px;
-      font-weight: bold;
-      transition: 0.3s;
-      cursor: pointer;
-      z-index: 2001;
-    }
-
-    .close-modal:hover,
-    .close-modal:focus {
-      color: #bbb;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    /* Leaflet Controls */
-    .leaflet-bar a {
-      background: var(--glass-bg) !important;
-      color: var(--primary-color) !important;
-      border: none !important;
-    }
-
-    @keyframes blink {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-
-    /* Mobile Adjustments */
     @media (max-width: 600px) {
-      .app-header {
-        width: 85%;
-        flex-direction: column;
-        gap: 5px;
-        padding: 10px;
-        border-radius: 20px;
-      }
+      .app-header { width: 90%; flex-direction: column; gap: 8px; padding: 12px; border-radius: 20px; }
       .divider { display: none; }
-      .clock-display { font-size: 0.85rem; }
     }
   </style>
 </head>
 <body>
 
   <div class="app-header">
-    <div class="header-title">
+    <div style="display:flex; align-items:center; gap:10px;">
       <span class="live-badge"><div class="live-dot"></div> LIVE</span>
       <h1>ภาพจากกล้องที่เกาะสมุย</h1>
     </div>
     <div class="divider"></div>
-    <div id="liveClock" class="clock-display">Loading...</div>
+    <div id="liveClock" class="clock-display">...</div>
   </div>
 
   <div id="imgModal" class="modal" onclick="closeModal()">
     <span class="close-modal">&times;</span>
     <img class="modal-content" id="fullImage">
-    <div id="caption" class="modal-caption"></div>
   </div>
 
   <div id="map"></div>
 
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    // --- 1. Real-time Thai Clock ---
+    // --- 1. Clock ---
     function updateClock() {
       const now = new Date();
-      const options = { 
-        timeZone: 'Asia/Bangkok',
-        day: 'numeric', 
-        month: 'short', 
-        year: 'numeric', // จะได้ ค.ศ. ก่อน เดี๋ยวแปลงเป็น พ.ศ.
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit'
-      };
-      
-      // แปลงวันที่เป็นไทย
-      let dateString = now.toLocaleDateString('th-TH', options);
-      // Hack เล็กน้อยเพื่อให้แน่ใจว่าเป็นรูปแบบ พ.ศ. (บาง browser อาจให้ ค.ศ.)
-      if (dateString.includes('2025')) dateString = dateString.replace('2025', '2568');
-      if (dateString.includes('2026')) dateString = dateString.replace('2026', '2569');
-
-      // รวมวันที่และเวลา (toLocaleDateString บางทีไม่รวมเวลา ขึ้นอยู่กับ Browser)
-      // ใช้วิธีแยกส่วนเพื่อความชัวร์
-      const timeString = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const dayMonthYear = now.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-      
-      document.getElementById('liveClock').innerText = `${dayMonthYear} • ${timeString}`;
+      let d = now.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+      if (d.includes('2025')) d = d.replace('2025', '2568');
+      const t = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('liveClock').innerText = `${d} • ${t} น.`;
     }
-    setInterval(updateClock, 1000);
-    updateClock(); // Run immediately
+    setInterval(updateClock, 1000); updateClock();
 
-    // --- 2. Map Data ---
+    // --- 2. Weather Utils ---
+    function getWeatherDesc(code) {
+      const codes = { 0:"ฟ้าโปร่ง", 1:"เมฆบางส่วน", 2:"มีเมฆมาก", 3:"มืดครึ้ม", 45:"มีหมอก", 51:"ฝนปรอย", 61:"ฝนตก", 63:"ฝนปานกลาง", 65:"ฝนหนัก", 80:"ฝนฟ้าคะนอง", 95:"พายุเข้า" };
+      return codes[code] || "มีเมฆ";
+    }
+    function getWeatherIcon(code) {
+      if(code <= 1) return "☀️";
+      if(code <= 3) return "☁️";
+      if(code <= 48) return "🌫️";
+      if(code >= 51 && code <= 67) return "🌧️";
+      if(code >= 80 && code <= 99) return "⛈️";
+      return "🌤️";
+    }
+
+    // --- 3. Fetch Weather ---
+    async function fetchWeather(lat, lng, elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      try {
+        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&windspeed_unit=kmh`);
+        const data = await res.json();
+        const w = data.current_weather;
+        
+        el.innerHTML = `
+          <div class="weather-main">
+            <div class="weather-icon">${getWeatherIcon(w.weathercode)}</div>
+            <div class="weather-temp">${Math.round(w.temperature)}°</div>
+          </div>
+          <div class="weather-details">
+            <span class="weather-condition">${getWeatherDesc(w.weathercode)}</span>
+            <span class="weather-wind">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+              ลม ${w.windspeed} km/h
+            </span>
+          </div>
+        `;
+      } catch (e) { el.innerHTML = '<span style="color:red; font-size:0.8rem;">Load Failed</span>'; }
+    }
+
+    // --- 4. Data ---
     const webcams = [
+      { name: "The Deck Beach Club", lat: 9.56136, lng: 100.039554, img: "https://samui.life/cams/bang_rak_the_deck.jpg" },
       { name: "Baobab, Lamai", lat: 9.458187, lng: 100.042455, img: "https://samui.life/cams/baobab_lamai.jpg" },
       { name: "Crystal Bay", lat: 9.478152, lng: 100.066326, img: "https://samui.life/cams/crystalbay.jpg" },
       { name: "Lost Beach Bar Choeng Mon", lat: 9.571394, lng: 100.086406, img: "https://samui.life/cams/lost_beach_bar.jpg" },
@@ -307,7 +214,6 @@
       { name: "Phangan: Haad Rin", lat: 9.678137, lng: 100.068419, img: "https://samui.life/cams/phangan_haad_rin.jpg" },
       { name: "Chaweng, Pancake Man", lat: 9.531932, lng: 100.063066, img: "https://samui.life/cams/chaweng_pancake.jpg" },
       { name: "Banyan Food Market", lat: 9.535197, lng: 100.04358, img: "https://samui.life/cams/banyan_food_market.jpg" },
-      { name: "The Deck Beach Club", lat: 9.56136, lng: 100.039554, img: "https://samui.life/cams/bang_rak_the_deck.jpg" },
       { name: "Chaweng, Kaif Sauna", lat: 9.5448, lng: 100.071849, img: "https://samui.life/cams/kaif_sauna.jpg" },
       { name: "Banyan Tree Samui", lat: 9.473315, lng: 100.069299, img: "https://samui.life/cams/banyantree.jpg" },
       { name: "Secret Garden, Big Buddha", lat: 9.558081, lng: 100.055056, img: "https://samui.life/cams/secret_garden.jpg" },
@@ -324,64 +230,45 @@
       { name: "Chaweng, Zeze restaurant", lat: 9.524063, lng: 100.058519, img: "https://samui.life/cams/chaweng_zeze.jpg" },
       { name: "Bondi Chaweng", lat: 9.531991, lng: 100.063421, img: "https://samui.life/cams/bondi_chaweng.jpg" },
       { name: "Bondi Bar, Lamai", lat: 9.465408, lng: 100.044519, img: "https://samui.life/cams/bondilamai.jpg" },
-      { name: "Mae Haad Bay, Koh Tao", lat: 10.084906, lng: 99.823992, img: "https://samui.life/cams/koh_tao_mae_haad.jpg" },
+      { name: "Mae Haad Bay, Koh Tao", lat: 10.084906, lng: 99.823992, img: "https://samui.life/cams/koh_tao_mae_haad.jpg" }
     ];
 
-    // --- 3. Map Setup ---
-    const map = L.map('map', { zoomControl: false }).setView([9.53, 100.05], 11);
-    
+    // --- 5. Map Setup ---
+    const map = L.map('map', { zoomControl: false }).setView([9.54, 100.05], 11);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const googleHybrid = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      attribution: '&copy; Google Maps'
-    }).addTo(map);
+    L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, attribution: 'Google Hybrid' }).addTo(map);
 
     const customIcon = L.icon({
       iconUrl: "https://maphub.net/media/markers/y/hs/yhs5dy43ktskm4pw/80.png",
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
-      popupAnchor: [0, -32]
+      iconSize: [38, 38], iconAnchor: [19, 38], popupAnchor: [0, -34]
     });
 
-    // --- 4. Popup & Modal Logic ---
     const modal = document.getElementById("imgModal");
     const modalImg = document.getElementById("fullImage");
-    const captionText = document.getElementById("caption");
+    window.openModal = (src) => { modal.style.display = "block"; modalImg.src = src; }
+    window.closeModal = () => { modal.style.display = "none"; }
 
-    // Function called when clicking image in popup
-    window.openModal = function(imgSrc, title) {
-      modal.style.display = "block";
-      modalImg.src = imgSrc;
-      // captionText.innerHTML = title; // Uncomment if you want text below image
-    }
-
-    // Function to close modal
-    window.closeModal = function() {
-      modal.style.display = "none";
-    }
-
-    webcams.forEach(cam => {
+    webcams.forEach((cam, i) => {
       const marker = L.marker([cam.lat, cam.lng], { icon: customIcon }).addTo(map);
+      const wid = `w-${i}`;
       
-      // Escape single quotes in name just in case
-      const safeName = cam.name.replace(/'/g, "\\'");
-      
-      const popupContent = `
+      const popupHTML = `
         <div class="popup-card">
-          <div class="popup-img-container" onclick="openModal('${cam.img}', '${safeName}')">
-            <img src="${cam.img}" class="popup-img" alt="${cam.name}" loading="lazy" />
-            <div style="position:absolute; bottom:5px; right:5px; background:rgba(0,0,0,0.5); color:white; padding:2px 5px; font-size:10px; border-radius:3px; pointer-events:none;">
-              🔍 Click to Enlarge
-            </div>
+          <div class="popup-header">
+            <span class="popup-title">${cam.name}</span>
+            <span class="popup-coords">📍 ${cam.lat.toFixed(4)}, ${cam.lng.toFixed(4)}</span>
           </div>
-          <div class="popup-info">
-            <div class="popup-title">${cam.name}</div>
-            <div class="popup-coords">Lat: ${cam.lat.toFixed(4)}, Lng: ${cam.lng.toFixed(4)}</div>
+          <div class="popup-img-container" onclick="openModal('${cam.img}')">
+            <img src="${cam.img}" class="popup-img" alt="${cam.name}" loading="lazy"/>
+            <div class="click-hint">🔍 แตะเพื่อขยาย</div>
+          </div>
+          <div id="${wid}" class="weather-box">
+            <div class="weather-loading">กำลังโหลดข้อมูลอากาศ...</div>
           </div>
         </div>
       `;
-      marker.bindPopup(popupContent);
+      marker.bindPopup(popupHTML, { maxWidth: 340 });
+      marker.on('popupopen', () => fetchWeather(cam.lat, cam.lng, wid));
     });
 
   </script>
